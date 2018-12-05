@@ -15,11 +15,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 		  console.log(tabId);
 		  test(tabId);
-		  navigateToGoogle(tabId);
+		  navigateToUrl(tabId, "https://www.reddit.com");
+		  // navigateToGoogle(tabId);
 
-	  	  chrome.storage.local.get(['next_' + tabId], function(result) {
-            console.log('Navigating to ' + result.key);
-          });
+	  	  // chrome.storage.local.get(['next_' + tabId], function(result) {
+          //   console.log('Navigating to ' + result.key);
+          // });
 
 		});
 

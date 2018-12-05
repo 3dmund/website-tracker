@@ -26,13 +26,31 @@ const tracked = {
     'purple.com': 0,
     'producthunt.com': 0,
 };
+
+// const cleared = new Set(['poop']);
+
 var tabIdToPreviousUrl = {};
+
+// Maybe use array instead?
+const initialStorage = {
+  'test_key': 'test_value',
+  'clearedTabs': {
+      '1234': true,
+      '5678': true,
+  },
+};
 
 /***
  * CHROME LISTENERS
  */
+chrome.runtime.onStartup.addListener(function() {
+    chrome.storage.local.clear();
+    chrome.storage.local.set(initialStorage);
+})
 
 chrome.runtime.onInstalled.addListener(function () {
+    chrome.storage.local.clear();
+    chrome.storage.local.set(initialStorage);
     chrome.storage.sync.set({color: '#3aa757'}, function () {
         console.log('The color is green.');
     });
@@ -54,44 +72,62 @@ chrome.runtime.onInstalled.addListener(function () {
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     console.log("onUpdated");
+    console.log(changeInfo);
+    chrome.storage.local.get(null, function(items) {
+       console.log(items);
+    });
 
     const nextConst = "next_";
     const prevConst = "prev_";
 
-    console.log("newUrl, newHost, prevUrl, prevHost");
+    // console.log("newUrl, newHost, prevUrl, prevHost");
     const newUrl = changeInfo.url;
     const newHost = getHostName(newUrl);
-    console.log(newUrl);
-    console.log(newHost);
-
     const prevUrl = window.sessionStorage[tabId];
     const prevHost = getHostName(prevUrl);
-    console.log(prevUrl);
-    console.log(prevHost);
+
+    // console.log(cleared);
 
     // chrome.tabs.update(tabId, {url: "prompt.html"});
 
-
     if (prevHost !== newHost && newHost in tracked) {
-        tracked[newHost] += 1;
-        showNotification(newHost, tracked[newHost]);
-        chrome.tabs.update(tabId, {url: "prompt.html"});
+        chrome.storage.local.get(["clearedTabs"], function (items) {
+
+            let clearedTabs = items['clearedTabs'];
+
+            console.log("clearedTabs");
+            console.log(clearedTabs);
 
 
-        // Update tabid with next and previous
-        const nextStr = nextConst + tabId;
-        chrome.storage.local.set({nextStr: newUrl}, function () {
-            console.log('Value is set to ' + newUrl);
+            if (!(tabId in clearedTabs)) {
+                tracked[newHost] += 1;
+                showNotification(newHost, tracked[newHost]);
+                chrome.tabs.update(tabId, {url: "prompt.html"});
+
+
+                // Update tabid with next and previous
+                const nextStr = nextConst + tabId;
+
+                chrome.storage.local.set({'nextConst + tabId': newUrl}, function () {
+                    console.log('Value is set to ' + newUrl);
+                });
+
+                const prevStr = prevConst + tabId;
+                const prevUrl = window.sessionStorage[tabId];
+                chrome.storage.local.set({'prevConst + tabId': prevUrl}, function () {
+                    console.log('Value is set to ' + prevUrl);
+                });
+
+            }
         });
-
-        const prevStr = prevConst + tabId;
-        const prevUrl = window.sessionStorage[tabId];
-        chrome.storage.local.set({prevStr: prevUrl}, function () {
-            console.log('Value is set to ' + prevUrl);
-        });
-
     }
 
+
+
+
+
+    // TODO: Delete tabId on status complete
+    // cleared.delete(tabId);
     window.sessionStorage[tabId] = newUrl;
 });
 
@@ -102,6 +138,20 @@ chrome.history.onVisited.addListener(showNotification);
  * Main Functionality
  * @param content
  */
+function navigateToUrl(tabId, url) {
+    console.log("navigateToUrl");
+    // cleared.add(tabId);
+    // console.log(cleared);
+    // chrome.tabs.update(tabId, {url: url});
+    // TODO: define const for clearedTabs
+    chrome.storage.local.get("clearedTabs", function (items) {
+        const clearedTabs = items['clearedTabs'];
+        clearedTabs[tabId] = true;
+        chrome.storage.local.set({clearedTabs: clearedTabs});
+        console.log(clearedTabs);
+        chrome.tabs.update(tabId, {url: url});
+    });
+}
 
 function navigateToGoogle(tabId) {
     chrome.tabs.update(tabId, {url: "https://www.google.com/"});
