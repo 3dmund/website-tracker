@@ -6,11 +6,9 @@
 
 /***
  * Constants
+ *
  */
-//
-// VARIABLES
-//
-// const tracked = new Set(['facebook.com', 'youtube.com', 'reddit.com', 'purple.com', 'producthunt.com']);
+
 const tracked = {
     'facebook.com': 0,
     'youtube.com': 0,
@@ -38,9 +36,19 @@ const initialStorage = {
     }
 };
 
+const defaultWebsites = {
+    'facebook.com': 0,
+    'youtube.com': 0,
+    'mail.google.com': 0,
+    'reddit.com': 0
+};
+
+
 /***
  * CHROME LISTENERS
+ *
  */
+
 chrome.runtime.onStartup.addListener(function () {
     chrome.storage.local.clear();
     chrome.storage.local.set(initialStorage);
@@ -49,20 +57,24 @@ chrome.runtime.onStartup.addListener(function () {
 chrome.runtime.onInstalled.addListener(function () {
     // TODO: remove this
     chrome.storage.local.clear();
+    chrome.storage.sync.clear();
+
     chrome.storage.local.set(initialStorage);
-    chrome.storage.sync.set({color: '#3aa757'}, function () {
-    });
-    showNotification();
-    chrome.declarativeContent.onPageChanged.removeRules(undefined, function () {
-        chrome.declarativeContent.onPageChanged.addRules([{
-            conditions: [new chrome.declarativeContent.PageStateMatcher({
-                pageUrl: {hostEquals: 'developer.chrome.com'},
-                // pageUrl: {hostEquals: 'www.youtube.com'},
-            })],
-            // actions: [new chrome.declarativeContent.ShowPageAction(), new showNotification()]
-            actions: [new chrome.declarativeContent.ShowPageAction()]
-        }]);
-    });
+    chrome.storage.sync.set({websites: defaultWebsites});
+
+    // chrome.storage.sync.set({color: '#3aa757'}, function () {
+    // });
+    // // showNotification();
+    // chrome.declarativeContent.onPageChanged.removeRules(undefined, function () {
+    //     chrome.declarativeContent.onPageChanged.addRules([{
+    //         conditions: [new chrome.declarativeContent.PageStateMatcher({
+    //             pageUrl: {hostEquals: 'developer.chrome.com'},
+    //             // pageUrl: {hostEquals: 'www.youtube.com'},
+    //         })],
+    //         // actions: [new chrome.declarativeContent.ShowPageAction(), new showNotification()]
+    //         actions: [new chrome.declarativeContent.ShowPageAction()]
+    //     }]);
+    // });
 });
 
 
@@ -79,45 +91,60 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     const prevUrl = window.sessionStorage[tabId];
     const prevHost = getHostName(prevUrl);
 
-    if (prevHost !== newHost && newHost in tracked) {
-        chrome.storage.local.get('clearedTabs', function (items) {
+    chrome.storage.sync.get('websites', function(items) {
+        const websites = items['websites'];
+        if (prevHost !== newHost && newHost in websites) {
+            chrome.storage.local.get('clearedTabs', function (items) {
 
-            const clearedTabs = items['clearedTabs'];
+                const clearedTabs = items['clearedTabs'];
 
-            if (!(tabId in clearedTabs)) {
-                tracked[newHost] += 1;
-                showNotification(newHost, tracked[newHost]);
+                if (!(tabId in clearedTabs)) {
 
-                chrome.storage.local.get('nextUrls', function(items) {
-                    var nextUrls = items['nextUrls'];
-                    nextUrls[tabId] = newUrl;
-                    chrome.storage.local.set({nextUrls: nextUrls}, function() {
+                    // Update number of visits
+                    websites[newHost] += 1;
 
-                    });
-                });
-
-                chrome.storage.local.get('prevUrls', function(items) {
-                    var prevUrls = items['prevUrls'];
-                    prevUrls[tabId] = prevUrl;
-                    chrome.storage.local.set({prevUrls: prevUrls}, function() {
+                    chrome.storage.sync.set({websites: websites}, function() {
 
                     });
-                });
 
-                chrome.tabs.update(tabId, {url: "prompt.html"});
-            }
-        });
-    }
+                    // tracked[newHost] += 1;
+                    // showNotification(newHost, tracked[newHost]);
 
-    if (changeInfo.status === 'complete') {
+                    chrome.storage.local.get('nextUrls', function(items) {
+                        var nextUrls = items['nextUrls'];
+                        nextUrls[tabId] = newUrl;
+                        chrome.storage.local.set({nextUrls: nextUrls}, function() {
+
+                        });
+                    });
+
+                    chrome.storage.local.get('prevUrls', function(items) {
+                        var prevUrls = items['prevUrls'];
+                        prevUrls[tabId] = prevUrl;
+                        chrome.storage.local.set({prevUrls: prevUrls}, function() {
+
+                        });
+                    });
+
+                    chrome.tabs.update(tabId, {url: "prompt.html"});
+                }
+            });
+        }
+    });
+
+
+    if (changeInfo && changeInfo.status !== 'loading') {
         chrome.storage.local.get('clearedTabs', function (items) {
             // TODO: do something with true/false instead of deleting
+            console.log('clearing tab');
             const clearedTabs = items['clearedTabs'];
             delete clearedTabs[tabId];
+            console.log(clearedTabs);
             chrome.storage.local.set({clearedTabs: clearedTabs});
         });
     }
-    // cleared.delete(tabId);
+
+
     if (newUrl) {
         window.sessionStorage[tabId] = newUrl;
     }
@@ -125,11 +152,11 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 });
 
 
-chrome.history.onVisited.addListener(showNotification);
+// chrome.history.onVisited.addListener(showNotification);
 
 /***
  * Main Functionality
- * @param content
+ *
  */
 
 function goForward(tabId) {
@@ -153,17 +180,19 @@ function goBack(tabId) {
 
         const prevUrls = items['prevUrls'];
         const url = prevUrls[tabId];
-        chrome.tabs.update(tabId, {url: url});
+        if (!url) {
+            chrome.tabs.remove(tabId);
+        } else {
+            chrome.tabs.update(tabId, {url: url});
+        }
+
     });
 }
 
 
 /****
- *
  * HELPER FUNCTIONS
  *
- * @param url
- * @returns {*}
  */
 
 // function resetVisits() {
