@@ -2,7 +2,20 @@
   "name": "Website Tracker",
   "version": "1.0",
   "description": "Bitch!",
-  "permissions": ["activeTab", "declarativeContent", "storage", "notifications", "tabs", "<all_urls>"],
+  "permissions":
+  ["activeTab",
+    "declarativeContent",
+    "storage",
+    "notifications",
+    "tabs",
+    "<all_urls>",
+    "history",
+    "http://*/*",
+    "https://*/*",
+    "*://*/*",
+    "chrome-extension://ogehecglhbfmaededkopbpfamgcahgld/prompt.html",
+    "prompt.html"
+  ],
   "options_page": "options.html",
   "background": {
     "scripts": ["background.js"]

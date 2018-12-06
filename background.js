@@ -4,14 +4,9 @@
 
 'use strict';
 
-// $(document).ready(function() {
-//   $('#yes').click(function() {
-//     console.log("yes");
-//     testNotification();
-//   });
-// });
-
-
+/***
+ * Constants
+ */
 //
 // VARIABLES
 //
@@ -27,32 +22,35 @@ const tracked = {
     'producthunt.com': 0,
 };
 
-// const cleared = new Set(['poop']);
-
-var tabIdToPreviousUrl = {};
 
 // Maybe use array instead?
 const initialStorage = {
-  'test_key': 'test_value',
-  'clearedTabs': {
-      '1234': true,
-      '5678': true,
-  },
+    'test_key': 'test_value',
+    'clearedTabs': {
+        '1234': true,
+        '5678': true,
+    },
+    'nextUrls': {
+
+    },
+    'prevUrls': {
+
+    }
 };
 
 /***
  * CHROME LISTENERS
  */
-chrome.runtime.onStartup.addListener(function() {
+chrome.runtime.onStartup.addListener(function () {
     chrome.storage.local.clear();
     chrome.storage.local.set(initialStorage);
 })
 
 chrome.runtime.onInstalled.addListener(function () {
+    // TODO: remove this
     chrome.storage.local.clear();
     chrome.storage.local.set(initialStorage);
     chrome.storage.sync.set({color: '#3aa757'}, function () {
-        console.log('The color is green.');
     });
     showNotification();
     chrome.declarativeContent.onPageChanged.removeRules(undefined, function () {
@@ -69,66 +67,61 @@ chrome.runtime.onInstalled.addListener(function () {
 
 
 // Navigate to new page
-
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    console.log("onUpdated");
+    console.log("@@@@@@@@@@@@@@onUpdated@@@@@@@@@@@@@@@");
     console.log(changeInfo);
-    chrome.storage.local.get(null, function(items) {
-       console.log(items);
+    chrome.storage.local.get(null, function (items) {
+        console.log(items);
     });
 
-    const nextConst = "next_";
-    const prevConst = "prev_";
-
-    // console.log("newUrl, newHost, prevUrl, prevHost");
     const newUrl = changeInfo.url;
     const newHost = getHostName(newUrl);
     const prevUrl = window.sessionStorage[tabId];
     const prevHost = getHostName(prevUrl);
 
-    // console.log(cleared);
-
-    // chrome.tabs.update(tabId, {url: "prompt.html"});
-
     if (prevHost !== newHost && newHost in tracked) {
-        chrome.storage.local.get(["clearedTabs"], function (items) {
+        chrome.storage.local.get('clearedTabs', function (items) {
 
-            let clearedTabs = items['clearedTabs'];
-
-            console.log("clearedTabs");
-            console.log(clearedTabs);
-
+            const clearedTabs = items['clearedTabs'];
 
             if (!(tabId in clearedTabs)) {
                 tracked[newHost] += 1;
                 showNotification(newHost, tracked[newHost]);
+
+                chrome.storage.local.get('nextUrls', function(items) {
+                    var nextUrls = items['nextUrls'];
+                    nextUrls[tabId] = newUrl;
+                    chrome.storage.local.set({nextUrls: nextUrls}, function() {
+
+                    });
+                });
+
+                chrome.storage.local.get('prevUrls', function(items) {
+                    var prevUrls = items['prevUrls'];
+                    prevUrls[tabId] = prevUrl;
+                    chrome.storage.local.set({prevUrls: prevUrls}, function() {
+
+                    });
+                });
+
                 chrome.tabs.update(tabId, {url: "prompt.html"});
-
-
-                // Update tabid with next and previous
-                const nextStr = nextConst + tabId;
-
-                chrome.storage.local.set({'nextConst + tabId': newUrl}, function () {
-                    console.log('Value is set to ' + newUrl);
-                });
-
-                const prevStr = prevConst + tabId;
-                const prevUrl = window.sessionStorage[tabId];
-                chrome.storage.local.set({'prevConst + tabId': prevUrl}, function () {
-                    console.log('Value is set to ' + prevUrl);
-                });
-
             }
         });
     }
 
-
-
-
-
-    // TODO: Delete tabId on status complete
+    if (changeInfo.status === 'complete') {
+        chrome.storage.local.get('clearedTabs', function (items) {
+            // TODO: do something with true/false instead of deleting
+            const clearedTabs = items['clearedTabs'];
+            delete clearedTabs[tabId];
+            chrome.storage.local.set({clearedTabs: clearedTabs});
+        });
+    }
     // cleared.delete(tabId);
-    window.sessionStorage[tabId] = newUrl;
+    if (newUrl) {
+        window.sessionStorage[tabId] = newUrl;
+    }
+
 });
 
 
@@ -138,28 +131,30 @@ chrome.history.onVisited.addListener(showNotification);
  * Main Functionality
  * @param content
  */
-function navigateToUrl(tabId, url) {
-    console.log("navigateToUrl");
-    // cleared.add(tabId);
-    // console.log(cleared);
-    // chrome.tabs.update(tabId, {url: url});
+
+function goForward(tabId) {
     // TODO: define const for clearedTabs
-    chrome.storage.local.get("clearedTabs", function (items) {
+    chrome.storage.local.get(['clearedTabs', 'nextUrls'], function (items) {
         const clearedTabs = items['clearedTabs'];
         clearedTabs[tabId] = true;
         chrome.storage.local.set({clearedTabs: clearedTabs});
-        console.log(clearedTabs);
+
+        const nextUrls = items['nextUrls'];
+        const url = nextUrls[tabId];
         chrome.tabs.update(tabId, {url: url});
     });
 }
 
-function navigateToGoogle(tabId) {
-    chrome.tabs.update(tabId, {url: "https://www.google.com/"});
-}
+function goBack(tabId) {
+    chrome.storage.local.get(['clearedTabs', 'prevUrls'], function (items) {
+        const clearedTabs = items['clearedTabs'];
+        clearedTabs[tabId] = true;
+        chrome.storage.local.set({clearedTabs: clearedTabs});
 
-
-function test(content) {
-    console.log("Sent content is: " + content);
+        const prevUrls = items['prevUrls'];
+        const url = prevUrls[tabId];
+        chrome.tabs.update(tabId, {url: url});
+    });
 }
 
 
@@ -189,12 +184,6 @@ function getHostName(url) {
     }
 }
 
-var getLocation = function (href) {
-    var l = document.createElement("a");
-    l.href = href;
-    return l;
-};
-
 function showNotification(url, visit_number) {
     console.log('showing notification');
     const message_string = 'You have visited ' + url + ' ' + visit_number + ' times.';
@@ -204,7 +193,6 @@ function showNotification(url, visit_number) {
         title: url,
         message: message_string
     }, function () {
-        console.log('Popup done');
     });
 }
 
@@ -215,15 +203,8 @@ function testNotification(content) {
         title: test,
         message: content
     }, function () {
-        console.log('Popup done');
     });
 }
-
-
-
-// document.getElementById("yes").onclick = function () { 
-//   alert('hello!'); 
-// };
 
 
 // chrome.runtime.onInstalled.addListener(function() {
