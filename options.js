@@ -81,8 +81,6 @@ function constructTable() {
             });
             
 
-            // btn.onclick = (function(entry) {return function() {chooseUser(entry);}})(entry);
-
 
             var text = document.createElement('div');
             text.id = i.toString();

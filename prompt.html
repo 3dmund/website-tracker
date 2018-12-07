@@ -2,12 +2,22 @@
 <html>
   <head>
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script> -->
+    <link rel="stylesheet" type="text/css" href="style.css">
     <script type="text/javascript" src='background.js'></script>
     <script type="text/javascript" src='prompt.js'></script>
   </head>
   <body>
-    Are you sure you want to navigate to this page?
-    <button id="yes">Yes, I am sure</button>
-    <button id="no">No, take me back</button>
+    <div id="numVisits">
+    </div>
+    <div id="confirmation">
+      Are you sure you want to navigate to this page?
+    </div>
+
+    <div id="buttonContainer">
+      <button id="yes" class="promptButton">Continue</button>
+      <button id="no" class="promptButton">Go Back</button>
+    </div>
+
+
   </body>
 </html>
