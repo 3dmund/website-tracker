@@ -3,18 +3,15 @@
 // found in the LICENSE file.
 
 'use strict';
-// import schedule from 'node-schedule'
 
 /***
  * Constants
  *
  */
 
-// Maybe use array instead?
 const initialStorage = {
     'clearedTabs': {
-        '1234': true,
-        '5678': true,
+
     },
     'nextUrls': {
 
@@ -27,8 +24,8 @@ const initialStorage = {
 const defaultWebsites = {
     'facebook.com': 0,
     'youtube.com': 0,
-    'mail.google.com': 0,
-    'reddit.com': 0
+    'reddit.com': 0,
+    'twitter.com': 0
 };
 
 
@@ -49,31 +46,11 @@ chrome.runtime.onInstalled.addListener(function () {
 
     chrome.storage.local.set(initialStorage);
     chrome.storage.sync.set({websites: defaultWebsites});
-
-    // chrome.storage.sync.set({color: '#3aa757'}, function () {
-    // });
-    // // showNotification();
-    // chrome.declarativeContent.onPageChanged.removeRules(undefined, function () {
-    //     chrome.declarativeContent.onPageChanged.addRules([{
-    //         conditions: [new chrome.declarativeContent.PageStateMatcher({
-    //             pageUrl: {hostEquals: 'developer.chrome.com'},
-    //             // pageUrl: {hostEquals: 'www.youtube.com'},
-    //         })],
-    //         // actions: [new chrome.declarativeContent.ShowPageAction(), new showNotification()]
-    //         actions: [new chrome.declarativeContent.ShowPageAction()]
-    //     }]);
-    // });
 });
 
 
 // Navigate to new page
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    console.log("@@@@@@@@@@@@@@onUpdated@@@@@@@@@@@@@@@");
-    console.log(changeInfo);
-    chrome.storage.local.get(null, function (items) {
-        console.log(items);
-    });
-
     const newUrl = changeInfo.url;
     const newHost = getHostName(newUrl);
     const prevUrl = window.sessionStorage[tabId];
@@ -94,9 +71,6 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
                     chrome.storage.sync.set({websites: websites}, function() {
                         chrome.tabs.update(tabId, {url: "prompt.html"});
                     });
-
-                    // tracked[newHost] += 1;
-                    // showNotification(newHost, tracked[newHost]);
 
                     chrome.storage.local.get('nextUrls', function(items) {
                         var nextUrls = items['nextUrls'];
@@ -124,10 +98,8 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (changeInfo && changeInfo.status !== 'loading') {
         chrome.storage.local.get('clearedTabs', function (items) {
             // TODO: do something with true/false instead of deleting
-            console.log('clearing tab');
             const clearedTabs = items['clearedTabs'];
             delete clearedTabs[tabId];
-            console.log(clearedTabs);
             chrome.storage.local.set({clearedTabs: clearedTabs});
         });
     }
@@ -139,8 +111,6 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 
 });
 
-
-// chrome.history.onVisited.addListener(showNotification);
 
 /***
  * Main Functionality
@@ -211,7 +181,6 @@ function getOrdinalSuffix(i) {
 }
 
 function showNotification(url, visit_number) {
-    console.log('showing notification');
     const message_string = 'You have visited ' + url + ' ' + visit_number + ' times.';
     chrome.notifications.create({
         type: 'basic',
@@ -221,29 +190,3 @@ function showNotification(url, visit_number) {
     }, function () {
     });
 }
-
-function testNotification(content) {
-    chrome.notifications.create({
-        type: 'basic',
-        iconUrl: 'images/get_started128.png',
-        title: test,
-        message: content
-    }, function () {
-    });
-}
-
-
-// chrome.runtime.onInstalled.addListener(function() {
-//   chrome.storage.sync.set({color: '#3aa757'}, function() {
-//     console.log('The color is green.');
-//   });
-//   chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-//     chrome.declarativeContent.onPageChanged.addRules([{
-//       conditions: [new chrome.declarativeContent.PageStateMatcher({
-//         pageUrl: {hostEquals: 'developer.chrome.com'},
-//         // pageUrl: {hostEquals: 'www.youtube.com'},
-//       })],
-//       actions: [new chrome.declarativeContent.ShowPageAction()]
-//     }]);
-//   });
-// });

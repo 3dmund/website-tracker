@@ -9,9 +9,7 @@ function onKeyPress() {
 
     // If the user has pressed enter
     if (key === 13) {
-        console.log("enter pressed");
         let url = document.getElementById("addSiteField").value.trim();
-        console.log(url);
 
         // TODO: check if already exists
         chrome.storage.sync.get('websites', function (items) {
@@ -20,7 +18,6 @@ function onKeyPress() {
             chrome.storage.sync.set({websites: websites}, function() {
                 removeTable();
                 constructTable();
-                // document.getElementById("addSiteField").focus();
             });
         });
     }
@@ -29,7 +26,6 @@ function onKeyPress() {
 function onRemovePress(i) {
     let td = document.getElementById(i);
     let toRemove = td.innerText;
-    console.log(toRemove);
 
     chrome.storage.sync.get('websites', function (items) {
         const websites = items['websites'];
