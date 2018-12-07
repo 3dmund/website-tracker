@@ -10,21 +10,8 @@
  *
  */
 
-const tracked = {
-    'facebook.com': 0,
-    'youtube.com': 0,
-    'mail.google.com': 0,
-    'reddit.com': 0,
-
-    // Filler
-    'purple.com': 0,
-    'producthunt.com': 0,
-};
-
-
 // Maybe use array instead?
 const initialStorage = {
-    'test_key': 'test_value',
     'clearedTabs': {
         '1234': true,
         '5678': true,
@@ -195,12 +182,6 @@ function goBack(tabId) {
  * HELPER FUNCTIONS
  *
  */
-
-// function resetVisits() {
-//   for (website in tracked) {
-//     tracked[website] = 0;
-//   }
-// }
 
 function getHostName(url) {
     if (!url) {

@@ -20,7 +20,7 @@ function onKeyPress() {
             chrome.storage.sync.set({websites: websites}, function() {
                 removeTable();
                 constructTable();
-                document.getElementById("addSiteField").focus();
+                // document.getElementById("addSiteField").focus();
             });
         });
     }
@@ -112,3 +112,17 @@ function constructTable() {
 }
 
 constructTable();
+
+let resetButton = document.getElementById('resetButton');
+resetButton.addEventListener('click', function() {
+    chrome.storage.sync.get('websites', function (items) {
+        const websites = items['websites'];
+        Object.keys(websites).forEach(function(key) {
+            websites[key] = 0;
+        });
+        chrome.storage.sync.set({websites: websites}, function() {
+            removeTable();
+            constructTable();
+        });
+    });
+});

@@ -15,11 +15,28 @@ table {
     font-size: 25px;
 }
 td {
-    /*border: 1px solid black;*/
     display: inline-block;
     white-space: nowrap;
     padding: 8px;
-    /*width: 100%;*/
+}
+.mainButton {
+    outline: none;
+    box-shadow: none;
+    height: 20%;
+    width: 20%;
+    border: none;
+    background-color: lightskyblue;
+    color: white;
+    padding: 15px 32px;
+
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 30px;
+    border-radius: 5px;
+}
+.mainButton:hover {
+    background-color: deepskyblue;
 }
 #numVisits {
     text-align: center;
@@ -36,22 +53,8 @@ td {
     text-align: center;
 }
 .promptButton {
-    outline: none;
-    box-shadow: none;
-    height: 20%;
-    width: 20%;
-    border: none;
-    background-color: lightskyblue;
-    color: white;
-    padding: 15px 32px;
     margin-left: 20px;
     margin-right: 20px;
-
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 30px;
-    border-radius: 5px;
 }
 .promptButton:hover {
     background-color: deepskyblue;
@@ -93,7 +96,6 @@ td {
     overflow: auto;
 }
 .removeButton {
-
     outline: none;
     background: url(/images/delete-icon.png) no-repeat;
     background-size: 120%;
@@ -103,4 +105,8 @@ td {
 .removeButton:active {
     background: url(/images/delete-icon-active.png) no-repeat;
     background-size: 120%;
+}
+#resetContainer {
+    margin-top: 20px;
+    text-align: center;
 }
