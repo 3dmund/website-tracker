@@ -1,17 +1,11 @@
 {
   "name": "Abacus",
-  "version": "1.0",
+  "version": "0.1",
   "description": "Keep track of how often you visit distracting websites and waste less time on them!",
   "permissions":
   ["activeTab",
-    "declarativeContent",
     "storage",
-    "notifications",
-    "tabs",
-    "<all_urls>",
-    "http://*/*",
-    "https://*/*",
-    "*://*/*"
+    "tabs"
   ],
   "options_page": "options.html",
   "background": {
