@@ -10,10 +10,9 @@ function onKeyPress() {
     // If the user has pressed enter
     if (key === 13) {
         console.log("enter pressed");
-        let url = document.getElementById("add").value.trim();
+        let url = document.getElementById("addSiteField").value.trim();
         console.log(url);
 
-        // addUrl(url);
         // TODO: check if already exists
         chrome.storage.sync.get('websites', function (items) {
             const websites = items['websites'];
@@ -21,16 +20,13 @@ function onKeyPress() {
             chrome.storage.sync.set({websites: websites}, function() {
                 removeTable();
                 constructTable();
+                document.getElementById("addSiteField").focus();
             });
         });
     }
 }
 
 function onRemovePress(i) {
-    // var td=btn.parentNode.parentNode;
-    // console.log(td.html);
-    // p.parentNode.removeChild(p);
-
     let td = document.getElementById(i);
     let toRemove = td.innerText;
     console.log(toRemove);
@@ -57,49 +53,61 @@ function constructTable() {
     let table = document.getElementById('table');
     let tbody = document.createElement('tbody');
 
+    var topRow = document.createElement('tr');
+    var dummyCell = document.createElement('td');
+    dummyCell.className = 'buttonCell';
+    topRow.appendChild(dummyCell);
+    var addCell = document.createElement('td');
+    addCell.innerHTML =
+        '<textarea data-limit-rows="true" rows="1" name="Add" placeholder="Add website..." id="addSiteField"></textarea>'
+    addCell.className = 'siteCell';
+    topRow.appendChild(addCell);
+    tbody.appendChild(topRow);
+
     chrome.storage.sync.get('websites', function (items) {
         const websites = items['websites'];
-        console.log(websites);
 
         Object.keys(websites).forEach(function(key, i) {
-            console.log(key, websites[key]);
             var tr = document.createElement('tr');
-            var td = document.createElement('td');
-            // td.id = i.toString();
 
+            var buttonTd = document.createElement('td');
+            buttonTd.className = 'buttonCell';
             var btn = document.createElement('input');
             btn.type = "button";
-            btn.className = "btn";
-            // btn.id = i.toString();
-            console.log(i);
-            // btn.value = entry.email;
-
-            // document.getElementById(i.toString()).addEventListener('click', onRemovePress);
+            btn.className = "removeButton";
 
             btn.addEventListener('click', function () {
                 onRemovePress(i.toString());
             });
-            
+            buttonTd.appendChild(btn);
 
-
+            var siteTd = document.createElement('td');
+            siteTd.className = 'siteCell';
             var text = document.createElement('div');
+            text.className = 'siteText';
             text.id = i.toString();
             text.appendChild(document.createTextNode(key));
+            siteTd.appendChild(text);
 
-            var numVisits = document.createElement('div');
-            numVisits.appendChild(document.createTextNode(websites[key]));
+            var visitsTd = document.createElement('td');
+            visitsTd.className = 'visitsCell';
+            var numVisitsDiv = document.createElement('div');
+            var numVisits = websites[key];
+            var end = " visits";
+            if (numVisits === 1) {
+                end = " visit";
+            }
+            numVisitsDiv.appendChild(document.createTextNode(numVisits + end));
+            visitsTd.appendChild(numVisitsDiv);
 
-            // td.appendChild(document.createTextNode(key));
-            td.appendChild(btn);
-            td.appendChild(text);
-            td.appendChild(numVisits);
-            tr.appendChild(td);
+            tr.appendChild(buttonTd);
+            tr.appendChild(siteTd);
+            tr.appendChild(visitsTd);
             tbody.appendChild(tr);
         });
 
         table.appendChild(tbody);
-        table.insertRow(0).innerHTML = '<tr><td><textarea data-limit-rows="true" rows="1" name="Add" placeholder="Add website..." id="add" style = "resize: none; width:100%;"></textarea></td></tr>';
-        document.getElementById("add").addEventListener("keypress", onKeyPress);
+        document.getElementById("addSiteField").addEventListener("keypress", onKeyPress);
     });
 }
 

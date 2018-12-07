@@ -5,8 +5,21 @@ button {
     cursor: pointer;
 }
 
-table, td {
-    border: 1px solid black;
+table {
+    width: 60%;
+    table-layout: fixed;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    border-collapse: collapse;
+    font-size: 25px;
+}
+td {
+    /*border: 1px solid black;*/
+    display: inline-block;
+    white-space: nowrap;
+    padding: 8px;
+    /*width: 100%;*/
 }
 #numVisits {
     text-align: center;
@@ -44,8 +57,50 @@ table, td {
     background-color: deepskyblue;
 }
 
-#trackedSites {
+#trackedSitesText {
     text-align: center;
     margin-top: 10%;
     font-size: 60px;
+}
+#addSiteField {
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 2px solid lightgray;
+    line-height: 25px;
+    font-size: 25px;
+    resize: none;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    white-space: nowrap;
+}
+#addSiteField:focus {
+    outline: none;
+}
+.buttonCell {
+    width: 25%;
+    vertical-align: center;
+    text-align: right;
+}
+.siteCell {
+    width: 35%;
+}
+.visitsCell {
+    width: 15%;
+}
+.siteText {
+    overflow: auto;
+}
+.removeButton {
+
+    outline: none;
+    background: url(/images/delete-icon.png) no-repeat;
+    background-size: 120%;
+    cursor: pointer;
+    border: none;
+}
+.removeButton:active {
+    background: url(/images/delete-icon-active.png) no-repeat;
+    background-size: 120%;
 }
